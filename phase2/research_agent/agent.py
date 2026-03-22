@@ -43,7 +43,7 @@ def create_research_agent():
     # ChatOllama connects to Ollama running on your machine
     # temperature=0 means: be precise, not creative (good for research)
     llm = ChatOllama(
-        model="llama3.1",       # The LLM we downloaded via `ollama pull llama3.2`
+        model="llama3.2",       # The LLM we downloaded via `ollama pull llama3.2`
         temperature=0,          # 0 = deterministic, 1 = creative
         # timeout=120,          # Wait up to 2 min for slow responses
     )
@@ -113,12 +113,9 @@ Thought: {agent_scratchpad}"""
     agent_executor = AgentExecutor(
         agent=agent,
         tools=tools,
-        verbose=True,
-        max_iterations=15,                     # was 10
-        max_execution_time=90,                 # 90 second hard timeout
-        handle_parsing_errors=True,
-        early_stopping_method="generate",      # graceful finish
-        return_intermediate_steps=True        # useful for debugging
+        verbose=True,              # Show Thought/Action/Observation (great for learning!)
+        max_iterations=10,         # Max 10 tool calls per task (prevents infinite loops)
+        handle_parsing_errors=True # Don't crash on LLM format mistakes
     )
     console.print("  ✅ Agent executor ready\n")
     
@@ -172,46 +169,28 @@ def run_research_session():
         
         console.print("\n[bold cyan]🤖 Agent working...[/bold cyan]\n")
         
-        #try:
-        #    # Run the agent! This triggers the ReAct loop:
-        #    # 1. LLM reads the task
-        #    # 2. Thinks about what tool to use
-        #    # 3. Calls the tool
-        #    # 4. Reads the observation
-        #    # 5. Thinks again
-        #    # 6. Repeats until it has the answer
-        #    result = agent.invoke({
-        #        "input": user_input  # The user's research task
-        #    })
-        #    
-        #    # Display the final answer nicely
-        #    console.print(Panel(
-        #        result["output"],           # The agent's final answer
-        #        title="📋 Research Result",
-        #        border_style="green"
-        #    ))
-        #    
-        #except Exception as e:
-        #    console.print(f"[red]Error: {e}[/red]")
-        #    console.print("[yellow]Tip: Make sure Ollama is running: `ollama serve`[/yellow]")
         try:
-            result = agent.invoke({"input": user_input})
-            output = result.get("output", "").strip()
-            steps  = result.get("intermediate_steps", [])
+            # Run the agent! This triggers the ReAct loop:
+            # 1. LLM reads the task
+            # 2. Thinks about what tool to use
+            # 3. Calls the tool
+            # 4. Reads the observation
+            # 5. Thinks again
+            # 6. Repeats until it has the answer
+            result = agent.invoke({
+                "input": user_input  # The user's research task
+            })
             
-            # Show how many tool calls were made
-            console.print(f"[dim]({len(steps)} tool calls made)[/dim]")
+            # Display the final answer nicely
+            console.print(Panel(
+                result["output"],           # The agent's final answer
+                title="📋 Research Result",
+                border_style="green"
+            ))
             
-            if not output or "Agent stopped" in output:
-                console.print("[yellow]⚠ Agent couldn't finish in time.[/yellow]")
-                console.print("[yellow]Tip: Try a more specific question, e.g.[/yellow]")
-                console.print("[yellow]  'What is LangChain in 3 sentences?'[/yellow]")
-                console.print("[yellow]  instead of open-ended research tasks.[/yellow]")
-            else:
-                console.print(Panel(output, title="📋 Research Result", border_style="green"))
-
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
+            console.print("[yellow]Tip: Make sure Ollama is running: `ollama serve`[/yellow]")
 
 
 # ── Entry point ──────────────────────────────────────────────

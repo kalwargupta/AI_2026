@@ -1,0 +1,14 @@
+langchain==0.3.7
+langchain-community==0.3.7
+langchain-ollama==0.2.1
+langchain-chroma==0.1.4
+chromadb==0.5.18
+faiss-cpu==1.8.0
+pypdf==4.3.1
+pymupdf==1.24.11
+duckduckgo-search==6.3.5
+requests==2.32.3
+beautifulsoup4==4.12.3
+streamlit==1.40.0
+python-dotenv==1.0.1
+rich==13.9.4
